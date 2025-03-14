@@ -9,8 +9,8 @@ services:
     environment:
       - DB_HOST=postgres
       - DB_USER=postgres
-      - DB_PASSWORD=secret
-      - DB_NAME=app
+      - DB_PASSWORD=mypswd
+      - DB_NAME=app_db
       - DB_PORT=5435
     ports:
       - "8080:8080"
@@ -23,7 +23,7 @@ services:
     container_name: go-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: app_user
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mypswd
       POSTGRES_DB: app_db
     ports:
