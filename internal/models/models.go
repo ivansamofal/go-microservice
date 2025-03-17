@@ -34,3 +34,8 @@ type CountryResponse struct {
 	Code3  string         `json:"code3"`
 	Cities []CityResponse `json:"cities"`
 }
+
+type Credentials struct {
+	Username string `json:"username" example:"admin"`
+	Password string `json:"password" example:"password"`
+}

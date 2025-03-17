@@ -1,28 +1,21 @@
 package db
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var DB *sql.DB
+var DB *gorm.DB
 
 func InitDB() {
-	var err error
-	// Замените на ваш URL подключения
-	connStr := "user=app_user password=mypswd host=postgres port=5432 dbname=app_db sslmode=disable"
-	DB, err = sql.Open("postgres", connStr)
+	dsn := "host=postgres user=app_user password=mypswd dbname=app_db port=5432 sslmode=disable"
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to connect to database: ", err)
 	}
 
-	// Проверяем соединение с БД
-	err = DB.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Connected to the database!")
+	DB = db
+	log.Println("Connected to the database!")
 }

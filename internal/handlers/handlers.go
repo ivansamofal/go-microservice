@@ -2,162 +2,128 @@ package handlers
 
 import (
 	"crypto/tls"
-	"database/sql"
 	"encoding/json"
 	"fmt"
+	"go_microservice/internal/logger"
 	"io/ioutil"
 	"log"
 	"net/http"
 
-	"go_microservice/internal/db"
+	"github.com/gin-gonic/gin"
 	"go_microservice/internal/models"
 	"go_microservice/internal/repository"
 )
 
-func Handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hello, Go Microservice!")
+var getCountriesWithCities = repository.GetCountriesWithCities
+
+// Простой обработчик, возвращающий строку
+func Handler(c *gin.Context) {
+	c.String(http.StatusOK, "Hello, Go Microservice!")
 }
 
-func StatusHandler(w http.ResponseWriter, r *http.Request) {
+// StatusHandler godoc
+// @Summary Статус сервиса
+// @Description Возвращает информацию о статусе сервиса
+// @Tags status
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Статус сервиса"
+// @Failure 401 {object} map[string]interface{} "Ошибка авторизации"
+// @Router /api/status [get]
+func StatusHandler(c *gin.Context) {
 	response := map[string]string{
 		"status":  "running",
 		"version": "1.0.0",
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
 
-func InfoHandler(w http.ResponseWriter, r *http.Request) {
-	var name string
-	err := db.DB.QueryRow("SELECT name FROM services WHERE id = 1").Scan(&name)
-	if err != nil {
-		http.Error(w, "Failed to fetch service info", http.StatusInternalServerError)
+// InfoHandler godoc
+// @Summary Информация о сервисе
+// @Description Возвращает общую информацию о сервисе
+// @Tags info
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Информация о сервисе"
+// @Failure 401 {object} map[string]interface{} "Ошибка авторизации"
+// @Router /api/info [get]
+func InfoHandler(c *gin.Context) {
+	var service models.Service
+	// Находим сервис с ID = 1
+	if err := repository.GetServiceByID(1, &service); err != nil {
+		logger.Log.WithError(err).Error("Failed to fetch service info")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch service info"})
 		return
 	}
 
 	response := map[string]string{
-		"name":        name,
+		"name":        service.Name,
 		"description": "Simple API with static data",
 		"author":      "Your Name",
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	c.JSON(http.StatusOK, response)
 }
 
-func GeoHandler(w http.ResponseWriter, r *http.Request) {
-	// Используем структуры из пакета models
-	type CityResponse = models.CityResponse
-	type CountryResponse = models.CountryResponse
-
-	query := `
-        SELECT c.id, c.name, c.code2, c.code3, ci.name, ci.population, ci.active
-        FROM countries c
-        LEFT JOIN cities ci ON c.id = ci.country_id
-        ORDER BY c.id
-    `
-	rows, err := db.DB.Query(query)
-	if err != nil {
-		http.Error(w, "Database query error", http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	countriesMap := make(map[int]*CountryResponse)
-	for rows.Next() {
-		var countryID int
-		var countryName, code2, code3 string
-		var cityName sql.NullString
-		var cityPopulation sql.NullInt64
-		var cityActive sql.NullBool
-
-		if err := rows.Scan(&countryID, &countryName, &code2, &code3, &cityName, &cityPopulation, &cityActive); err != nil {
-			http.Error(w, "Error scanning row", http.StatusInternalServerError)
-			return
-		}
-
-		country, exists := countriesMap[countryID]
-		if !exists {
-			country = &CountryResponse{
-				ID:     countryID,
-				Name:   countryName,
-				Code2:  code2,
-				Code3:  code3,
-				Cities: []CityResponse{},
-			}
-			countriesMap[countryID] = country
-		}
-
-		if cityName.Valid {
-			city := CityResponse{
-				Name:       cityName.String,
-				Population: int(cityPopulation.Int64),
-				Active:     cityActive.Bool,
-			}
-			country.Cities = append(country.Cities, city)
-		}
-	}
-
-	if err = rows.Err(); err != nil {
-		http.Error(w, "Rows error", http.StatusInternalServerError)
-		return
-	}
-
-	countries := make([]CountryResponse, 0, len(countriesMap))
-	for _, country := range countriesMap {
-		countries = append(countries, *country)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(countries)
-}
-
-func FetchAndSaveData(w http.ResponseWriter, r *http.Request) {
+// FetchAndSaveData godoc
+// @Summary Сохранить данные
+// @Description Получает данные из запроса и сохраняет их в БД (требуется авторизация)
+// @Tags save
+// @Accept json
+// @Produce json
+// @Param data body map[string]interface{} true "Данные для сохранения"
+// @Success 200 {object} map[string]interface{} "Результат операции"
+// @Failure 400 {object} map[string]interface{} "Неверный запрос"
+// @Failure 401 {object} map[string]interface{} "Ошибка авторизации"
+// @Failure 500 {object} map[string]interface{} "Ошибка БД"
+// @Router /api/save [post]
+func FetchAndSaveData(c *gin.Context) {
 	// Настройка TLS для пропуска проверки сертификата
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	resp, err := http.Get("https://restcountries.com/v3.1/all")
 	if err != nil {
-		log.Fatal(err)
-		http.Error(w, "Failed to fetch data from API", http.StatusInternalServerError)
+		log.Println(err)
+		logger.Log.WithError(err).Error("Failed to fetch data from API save data")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data from API"})
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
-		http.Error(w, "Failed to read API response", http.StatusInternalServerError)
+		log.Println(err)
+		logger.Log.WithError(err).Error("Failed to read API response save data")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read API response"})
 		return
 	}
 
-	var countries []models.Country
-	err = json.Unmarshal(body, &countries)
-	if err != nil {
-		log.Fatal(err)
-		http.Error(w, "Failed to parse API response", http.StatusInternalServerError)
+	// Предположим, что структура models.Country используется для парсинга JSON
+	var externalCountries []models.Country
+	if err = json.Unmarshal(body, &externalCountries); err != nil {
+		log.Println(err)
+		logger.Log.WithError(err).Error("Failed to parse API save data")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse API response"})
 		return
 	}
 
-	for _, country := range countries {
-		countryName := country.Name.Common
-		countryID, err := repository.InsertCountry(countryName, country.Alpha2Code, country.Alpha3Code)
+	// Перебираем полученные страны и сохраняем их через репозиторий
+	for _, extCountry := range externalCountries {
+		// Сохраняем страну (InsertCountry возвращает ID сохранённой страны)
+		countryID, err := repository.InsertCountry(extCountry.Name.Common, extCountry.Alpha2Code, extCountry.Alpha3Code)
 		if err != nil {
-			log.Printf("Failed to insert country %s: %v", countryName, err)
+			logger.Log.WithError(err).Error("Failed to insert country " + extCountry.Name.Common)
+			log.Printf("Failed to insert country %s: %v", extCountry.Name.Common, err)
 			continue
 		}
 
-		if len(country.Capital) > 0 {
-			capitalName := country.Capital[0]
-			population := country.Population
-			log.Printf("Preparing to insert city: Name=%s, CountryID=%d, Population=%d", capitalName, countryID, population)
-			err := repository.InsertCity(capitalName, countryID, population, true)
+		// Если есть столица – сохраняем её как город
+		if len(extCountry.Capital) > 0 {
+			err := repository.InsertCity(extCountry.Capital[0], countryID, extCountry.Population, true)
 			if err != nil {
-				log.Printf("Failed to insert city %s: %v", capitalName, err)
+				logger.Log.WithError(err).Error("Failed to insert city " + extCountry.Capital[0])
+				log.Printf("Failed to insert city %s: %v", extCountry.Capital[0], err)
 			} else {
-				fmt.Printf("Inserted country %s and capital %s\n", countryName, capitalName)
+				fmt.Printf("Inserted country %s and capital %s\n", extCountry.Name.Common, extCountry.Capital[0])
 			}
 		}
 	}
 
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Data saved successfully")
+	c.String(http.StatusOK, "Data saved successfully")
 }

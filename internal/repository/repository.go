@@ -2,20 +2,40 @@ package repository
 
 import (
 	"go_microservice/internal/db"
+	"go_microservice/internal/models"
 )
 
+// GetServiceByID находит запись модели Service по её ID.
+// Результат записывается в переданный указатель service.
+func GetServiceByID(id int, service *models.Service) error {
+	return db.DB.First(service, id).Error
+}
+
+// GetCountriesWithCities получает список стран с подгруженными городами.
+// Результат записывается в переданный срез countries.
+func GetCountriesWithCities(countries *[]models.CountryDB) error {
+	return db.DB.Preload("Cities").Order("id").Find(countries).Error
+}
+
 func InsertCountry(name, code2, code3 string) (int, error) {
-	query := `INSERT INTO countries (name, code2, code3) VALUES ($1, $2, $3) RETURNING id`
-	var id int
-	err := db.DB.QueryRow(query, name, code2, code3).Scan(&id)
-	if err != nil {
+	country := models.CountryDB{
+		Name:  name,
+		Code2: code2,
+		Code3: code3,
+	}
+	// Создаем запись. Если нужна проверка на существование, можно использовать FirstOrCreate.
+	if err := db.DB.Create(&country).Error; err != nil {
 		return 0, err
 	}
-	return id, nil
+	return int(country.ID), nil
 }
 
 func InsertCity(name string, countryID int, population int, active bool) error {
-	query := `INSERT INTO cities (name, country_id, population, active) VALUES ($1, $2, $3, $4)`
-	_, err := db.DB.Exec(query, name, countryID, population, active)
-	return err
+	city := models.CityDB{
+		Name:       name,
+		CountryID:  uint(countryID),
+		Population: population,
+		Active:     active,
+	}
+	return db.DB.Create(&city).Error
 }
