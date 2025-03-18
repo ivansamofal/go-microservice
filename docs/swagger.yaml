@@ -1,0 +1,187 @@
+basePath: /
+definitions:
+  models.CityDB:
+    properties:
+      active:
+        type: boolean
+      country_id:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      population:
+        type: integer
+    type: object
+  models.CountryDB:
+    properties:
+      cities:
+        items:
+          $ref: '#/definitions/models.CityDB'
+        type: array
+      code2:
+        type: string
+      code3:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      population:
+        type: integer
+    type: object
+  models.Credentials:
+    properties:
+      password:
+        example: password
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API Documentation for Go Microservice.
+  title: Go Microservice API
+  version: "1.0"
+paths:
+  /api/geo:
+    get:
+      description: Возвращает список стран и городов (требуется авторизация)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список стран с городами
+          schema:
+            items:
+              $ref: '#/definitions/models.CountryDB'
+            type: array
+        "401":
+          description: Ошибка авторизации
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Ошибка БД
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Географическая информация
+      tags:
+      - geo
+  /api/get_api_key:
+    post:
+      consumes:
+      - application/json
+      description: Генерирует JWT токен для доступа к API по переданным учетным данным.
+      parameters:
+      - description: Учетные данные
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.Credentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: api_key
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неверные учетные данные
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получение API-ключа
+      tags:
+      - auth
+  /api/info:
+    get:
+      description: Возвращает общую информацию о сервисе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о сервисе
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Ошибка авторизации
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Информация о сервисе
+      tags:
+      - info
+  /api/save:
+    post:
+      consumes:
+      - application/json
+      description: Получает данные из запроса и сохраняет их в БД (требуется авторизация)
+      parameters:
+      - description: Данные для сохранения
+        in: body
+        name: data
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Результат операции
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Неверный запрос
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Ошибка авторизации
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Ошибка БД
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Сохранить данные
+      tags:
+      - save
+  /api/status:
+    get:
+      description: Возвращает информацию о статусе сервиса
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статус сервиса
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Ошибка авторизации
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Статус сервиса
+      tags:
+      - status
+swagger: "2.0"

@@ -7,6 +7,8 @@ import (
 	"go_microservice/internal/handlers"
 	"go_microservice/internal/logger"
 	"go_microservice/internal/middleware"
+	"go_microservice/internal/cache"
+	"github.com/joho/godotenv"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -19,8 +21,13 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("Нет файла .env или ошибка его загрузки")
+	}
+
 	db.InitDB()
 	logger.Init()
+	cache.InitRedis()
 
 	router := gin.Default()
 
