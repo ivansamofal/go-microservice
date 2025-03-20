@@ -26,7 +26,7 @@ func InitDB() {
 		log.Fatal("Failed to connect to database: ", err)
 	}
 
-	if err := db.AutoMigrate(&migrations.TradeRow{}); err != nil {
+	if err := db.AutoMigrate(&migrations.BinanceTicker{}); err != nil {
 		log.Fatalf("Ошибка миграции БД: %v", err)
 	}
 

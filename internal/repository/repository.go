@@ -45,6 +45,6 @@ func InsertCity(name string, countryID int, population int, active bool) error {
 	return db.DB.Create(&city).Error
 }
 
-func CreateTradeRow(ticker *migrations.TradeRow) error {
+func CreateTradeRow(ticker *migrations.BinanceTicker) error {
 	return db.DB.Create(ticker).Error
 }

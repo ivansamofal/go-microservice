@@ -56,17 +56,18 @@ type CountryGDPResult struct {
 	AverageGDPNominal float64 `json:"average_gdp_nominal"`
 }
 
-type TickerData struct {
-	Timestamp       int64   `json:"timestamp,string"`
-	Open            float64 `json:"open,string"`
-	High            float64 `json:"high,string"`
-	Low             float64 `json:"low,string"`
-	Last            float64 `json:"last,string"`
-	Volume          float64 `json:"volume,string"`
-	VWAP            float64 `json:"vwap,string"`
-	Bid             float64 `json:"bid,string"`
-	Ask             float64 `json:"ask,string"`
-	Side            int     `json:"side,string"`
-	Open24          float64 `json:"open_24,string"`
-	PercentChange24 float64 `json:"percent_change_24,string"`
+type BinanceTickerData struct {
+	Symbol             string `json:"symbol"`
+	PriceChange        float64 `json:"priceChange,string"`
+	PriceChangePercent float64 `json:"priceChangePercent,string"`
+	WeightedAvgPrice   float64 `json:"weightedAvgPrice,string"`
+	OpenPrice          float64 `json:"openPrice,string"`
+	HighPrice          float64 `json:"highPrice,string"`
+	LowPrice           float64 `json:"lowPrice,string"`
+	LastPrice          float64 `json:"lastPrice,string"`
+	Volume             float64 `json:"volume,string"`
+	BidPrice           float64 `json:"bidPrice,string"`
+	AskPrice           float64 `json:"askPrice,string"`
+	OpenTime           int64  `json:"openTime"`
+	CloseTime          int64  `json:"closeTime"`
 }

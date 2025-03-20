@@ -5,10 +5,10 @@ import (
 )
 
 // calculateVWAP рассчитывает средневзвешенную по объёму цену (VWAP) за день.
-func calculateVWAP(data []models.TickerData) float64 {
+func calculateVWAP(data []models.BinanceTickerData) float64 {
 	totalPV, totalVolume := 0.0, 0.0
 	for _, d := range data {
-		totalPV += d.Last * d.Volume
+		totalPV += d.LastPrice * d.Volume
 		totalVolume += d.Volume
 	}
 	if totalVolume == 0 {

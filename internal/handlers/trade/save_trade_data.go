@@ -21,35 +21,35 @@ func SaveTradeData(c *gin.Context) {
 		},
 	}
 	// Выполняем HTTP GET запрос.
-	resp, err := client.Get("https://www.bitstamp.net/api/v2/ticker/btcusd/")
+	resp, err := client.Get("https://www.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	defer resp.Body.Close()
 
-	// Декодируем JSON.
-	var tickerData models.TickerData
+	var tickerData models.BinanceTickerData
 	if err := json.NewDecoder(resp.Body).Decode(&tickerData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	timestampStr := strconv.FormatInt(tickerData.Timestamp, 10)
-	sideStr := strconv.Itoa(tickerData.Side)
-	openStr := strconv.FormatFloat(tickerData.Open, 'f', -1, 64)
-	highStr := strconv.FormatFloat(tickerData.High, 'f', -1, 64)
-	lowStr := strconv.FormatFloat(tickerData.Low, 'f', -1, 64)
-	lastStr := strconv.FormatFloat(tickerData.Last, 'f', -1, 64)
-	volumeStr := strconv.FormatFloat(tickerData.Volume, 'f', -1, 64)
-	vwapStr := strconv.FormatFloat(tickerData.VWAP, 'f', -1, 64)
-	bidStr := strconv.FormatFloat(tickerData.Bid, 'f', -1, 64)
-	askStr := strconv.FormatFloat(tickerData.Ask, 'f', -1, 64)
-	open24Str := strconv.FormatFloat(tickerData.Open24, 'f', -1, 64)
-	change24Str := strconv.FormatFloat(tickerData.PercentChange24, 'f', -1, 64)
+	timestampSec := tickerData.CloseTime / 1000
+	timestampStr := strconv.FormatInt(timestampSec, 10)
 
-	// Создаем новую запись.
-	ticker := migrations.TradeRow{
+	//timestampStr := strconv.FormatInt(tickerData.Timestamp, 10)
+	//sideStr := strconv.Itoa(tickerData.Side)
+	openStr := strconv.FormatFloat(tickerData.OpenPrice, 'f', -1, 64)
+	highStr := strconv.FormatFloat(tickerData.HighPrice, 'f', -1, 64)
+	lowStr := strconv.FormatFloat(tickerData.LowPrice, 'f', -1, 64)
+	lastStr := strconv.FormatFloat(tickerData.LastPrice, 'f', -1, 64)
+	volumeStr := strconv.FormatFloat(tickerData.Volume, 'f', -1, 64)
+	vwapStr := strconv.FormatFloat(tickerData.WeightedAvgPrice, 'f', -1, 64)
+	bidStr := strconv.FormatFloat(tickerData.BidPrice, 'f', -1, 64)
+	askStr := strconv.FormatFloat(tickerData.AskPrice, 'f', -1, 64)
+	change24Str := strconv.FormatFloat(tickerData.PriceChangePercent, 'f', -1, 64)
+
+	ticker := migrations.BinanceTicker {
 		Timestamp:       timestampStr,
 		Open:            openStr,
 		High:            highStr,
@@ -59,8 +59,6 @@ func SaveTradeData(c *gin.Context) {
 		VWAP:            vwapStr,
 		Bid:             bidStr,
 		Ask:             askStr,
-		Side:            sideStr,
-		Open24:          open24Str,
 		PercentChange24: change24Str,
 		CreatedAt:       time.Now(),
 	}
