@@ -3,6 +3,7 @@ package repository
 import (
 	"go_microservice/internal/db"
 	"go_microservice/internal/models"
+	"go_microservice/internal/migrations"
 )
 
 // GetServiceByID находит запись модели Service по её ID.
@@ -15,6 +16,10 @@ func GetServiceByID(id int, service *models.Service) error {
 // Результат записывается в переданный срез countries.
 func GetCountriesWithCities(countries *[]models.CountryDB) error {
 	return db.DB.Preload("Cities").Order("id").Find(countries).Error
+}
+
+func GetCountries(countries *[]models.CountryDB) error {
+	return db.DB.Limit(5).Find(countries).Error
 }
 
 func InsertCountry(name, code2, code3 string) (int, error) {
@@ -38,4 +43,8 @@ func InsertCity(name string, countryID int, population int, active bool) error {
 		Active:     active,
 	}
 	return db.DB.Create(&city).Error
+}
+
+func CreateTradeRow(ticker *migrations.TradeRow) error {
+	return db.DB.Create(ticker).Error
 }

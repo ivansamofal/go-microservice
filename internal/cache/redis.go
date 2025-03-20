@@ -8,13 +8,10 @@ import (
 )
 
 var (
-	// RedisClient – глобальный клиент для работы с Redis.
 	RedisClient *redis.Client
 	Ctx         = context.Background()
 )
 
-
-// InitRedis инициализирует подключение к Redis.
 func InitRedis() {
 	addr := os.Getenv("REDIS_ADDR")
 	pswd := os.Getenv("REDIS_PASSWORD")
@@ -22,12 +19,12 @@ func InitRedis() {
 
 	db, err := strconv.Atoi(dbStr)
 	if err != nil {
-		db = 0 // или можно обработать ошибку и установить значение по умолчанию
+		db = 0
 	}
 
 	RedisClient = redis.NewClient(&redis.Options{
-		Addr:     addr, // адрес вашего Redis сервера
-		Password: pswd,               // если пароль не установлен, оставьте пустым
-		DB:       db,                // используемая база
+		Addr:     addr,
+		Password: pswd,
+		DB:       db,
 	})
 }
