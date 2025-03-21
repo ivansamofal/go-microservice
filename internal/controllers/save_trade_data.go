@@ -1,4 +1,4 @@
-package trade
+package controllers
 
 import (
 	"encoding/json"

@@ -48,3 +48,7 @@ func InsertCity(name string, countryID int, population int, active bool) error {
 func CreateTradeRow(ticker *migrations.BinanceTicker) error {
 	return db.DB.Create(ticker).Error
 }
+
+func GetTradeRows(tickers *[]migrations.BinanceTicker) error {
+	return db.DB.Order("created_at asc").Limit(1000).Find(tickers).Error
+}

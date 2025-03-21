@@ -5,7 +5,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go_microservice/internal/db"
 	"go_microservice/internal/handlers"
-	"go_microservice/internal/handlers/trade"
+	"go_microservice/internal/controllers"
 	"go_microservice/internal/logger"
 	"go_microservice/internal/middleware"
 	"go_microservice/internal/cache"
@@ -49,7 +49,8 @@ func main() {
 
 		router.GET("/api/gdp", handlers.AverageGdpHandler)
 
-		router.POST("/api/trade", trade.SaveTradeData)
+		router.POST("/api/trade", controllers.SaveTradeData)
+		router.GET("/api/calculations", controllers.Calculations)
 	}
 
 	log.Println("Starting server on port 8080...")

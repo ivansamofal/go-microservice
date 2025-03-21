@@ -71,3 +71,14 @@ type BinanceTickerData struct {
 	OpenTime           int64  `json:"openTime"`
 	CloseTime          int64  `json:"closeTime"`
 }
+
+type CalculationRequest struct {
+	Prices []float64                 `json:"prices"` // для расчёта EMA
+	Period int                       `json:"period"` // период EMA
+	Data   []BinanceTickerData `json:"data"`   // для расчёта VWAP
+}
+
+type CalculationResponse struct {
+	EMA  []float64 `json:"ema"`
+	VWAP float64   `json:"vwap"`
+}
