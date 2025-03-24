@@ -3,277 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Графики индикаторов</title>
-    <!-- Подключаем Chart.js через CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/dist/bundle.js"></script>
+    <style>
+        .chart-container {
+            margin-bottom: 30px;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <h1 class="my-4 text-center">Financial indicators</h1>
+    <div class="row">
+        <div class="col-md-6 chart-container">
+            <h2 class="text-center">RSI</h2>
+            <div id="rsiNewChart"></div>
+        </div>
+        <div class="col-md-6 chart-container">
+            <h2 class="text-center">Histogram</h2>
+            <div id="histogramNewChart"></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 chart-container">
+            <h2 class="text-center">MACD</h2>
+            <div id="macdNewChart"></div>
+        </div>
+        <div class="col-md-6 chart-container">
+            <h2 class="text-center">EMA</h2>
+            <div id="emaNewChart"></div>
+        </div>
+    </div>
+</div>
+
 <h1>Графики индикаторов</h1>
 <canvas id="emaChart" width="600" height="300"></canvas>
 <canvas id="macdChart" width="600" height="300"></canvas>
 <canvas id="histogram" width="600" height="300"></canvas>
 <canvas id="rsi" width="600" height="300"></canvas>
 <canvas id="signalLine" width="600" height="300"></canvas>
-<canvas id="chart" width="600" height="300"></canvas>
-
-<script>
-    // Запрашиваем данные с нашего API
-    fetch('http://109.196.164.36:8080/api/calculations')
-        .then(response => response.json())
-        .then(data => {
-            // Создаем график EMA
-            const emaCtx = document.getElementById('emaChart').getContext('2d');
-            new Chart(emaCtx, {
-                type: 'line',
-                data: {
-                    labels: data.ema.map((_, i) => i + 1),
-                    datasets: [{
-                        label: 'EMA',
-                        data: data.ema,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Период'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Значение EMA'
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Создаем график MACD
-            const macdCtx = document.getElementById('macdChart').getContext('2d');
-            new Chart(macdCtx, {
-                type: 'line',
-                data: {
-                    labels: data.macdLine.map((_, i) => i + 1),
-                    datasets: [{
-                        label: 'MACD',
-                        data: data.macdLine,
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Период'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Значение MACD'
-                            }
-                        }
-                    }
-                }
-            });
-
-            const histogram = document.getElementById('histogram').getContext('2d');
-            new Chart(histogram, {
-                type: 'line',
-                data: {
-                    labels: data.histogram.map((_, i) => i + 1),
-                    datasets: [{
-                        label: 'Histogram',
-                        data: data.histogram,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Период'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Значение Histogram'
-                            }
-                        }
-                    }
-                }
-            });
-
-            const rsi = document.getElementById('rsi').getContext('2d');
-            new Chart(rsi, {
-                type: 'line',
-                data: {
-                    labels: data.rsi.map((_, i) => i + 1),
-                    datasets: [{
-                        label: 'RSI',
-                        data: data.rsi,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Период'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Значение RSI'
-                            }
-                        }
-                    }
-                }
-            });
-
-            const signalLine = document.getElementById('signalLine').getContext('2d');
-            new Chart(signalLine, {
-                type: 'line',
-                data: {
-                    labels: data.rsi.map((_, i) => i + 1),
-                    datasets: [{
-                        label: 'Signal Line',
-                        data: data.signalLine,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Период'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Значение Signal Line'
-                            }
-                        }
-                    }
-                }
-            });
-
-
-
-            var dataSet = [
-                [2, 3, 4, 6, 7, 10, 20],
-                [2, 3, 4, 6, 7, 10, 20],
-                [2, 3, 4, 6, 7, 10, 20],
-            ];
-
-            var options = {
-                series: [{
-                    name: 'PRODUCT A',
-                    data: dataSet[0]
-                }, {
-                    name: 'PRODUCT B',
-                    data: dataSet[1]
-                }, {
-                    name: 'PRODUCT C',
-                    data: dataSet[2]
-                }],
-                chart: {
-                    type: 'area',
-                    stacked: false,
-                    height: 350,
-                    zoom: {
-                        enabled: false
-                    },
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                markers: {
-                    size: 0,
-                },
-                fill: {
-                    type: 'gradient',
-                    gradient: {
-                        shadeIntensity: 1,
-                        inverseColors: false,
-                        opacityFrom: 0.45,
-                        opacityTo: 0.05,
-                        stops: [20, 100, 100, 100]
-                    },
-                },
-                yaxis: {
-                    labels: {
-                        style: {
-                            colors: '#8e8da4',
-                        },
-                        offsetX: 0,
-                        formatter: function(val) {
-                            return (val / 1000000).toFixed(2);
-                        },
-                    },
-                    axisBorder: {
-                        show: false,
-                    },
-                    axisTicks: {
-                        show: false
-                    }
-                },
-                xaxis: {
-                    type: 'datetime',
-                    tickAmount: 8,
-                    min: new Date("01/01/2014").getTime(),
-                    max: new Date("01/20/2014").getTime(),
-                    labels: {
-                        rotate: -15,
-                        rotateAlways: true,
-                        formatter: function(val, timestamp) {
-                            return moment(new Date(timestamp)).format("DD MMM YYYY")
-                        }
-                    }
-                },
-                title: {
-                    text: 'Irregular Data in Time Series',
-                    align: 'left',
-                    offsetX: 14
-                },
-                tooltip: {
-                    shared: true
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'right',
-                    offsetX: -10
-                }
-            };
-
-            var chart = new ApexCharts(document.querySelector("#chart"), options);
-            chart.render();
-        })
-        .catch(error => console.error('Ошибка загрузки данных:', error));
-</script>
 </body>
 </html>
