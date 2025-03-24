@@ -5,6 +5,10 @@
     <title>Графики индикаторов</title>
     <!-- Подключаем Chart.js через CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Include moment.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="js/mychart.js"></script>
 </head>
 <body>
 <h1>Графики индикаторов</h1>
@@ -17,7 +21,7 @@
 
 <script>
     // Запрашиваем данные с нашего API
-    fetch('http://109.196.164.36:8080/api/calculations')
+    fetch('http://localhost:8080/api/calculations')
         .then(response => response.json())
         .then(data => {
             // Создаем график EMA

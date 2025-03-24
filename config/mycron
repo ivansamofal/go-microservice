@@ -1,2 +1,2 @@
 # Пример: запуск скрипта каждый час в начале часа
-* */30 * * * curl -X POST http://localhost:8080/api/trade
+* */15 * * * curl -X POST http://localhost:8080/api/trade

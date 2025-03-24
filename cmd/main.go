@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"os"
 
 	"go_microservice/internal/cache"
 	"go_microservice/internal/controllers"
@@ -38,7 +39,7 @@ func main() {
 
 	// Применяем CORS middleware ко всем маршрутам
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://109.196.164.36:3000"},
+		AllowOrigins:     []string{os.Getenv("HOST_FRONTEND_URL")},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -53,6 +54,7 @@ func main() {
 	router.GET("/", handlers.Handler)
 	router.POST("/api/login", handlers.GetAPIKeyHandler)
 	router.GET("/api/calculations", controllers.Calculations)
+	router.POST("/trade", controllers.SaveTradeData)
 
 	// Защищённая группа маршрутов
 	api := router.Group("/api")
@@ -65,7 +67,6 @@ func main() {
 
 		// Все маршруты начинающиеся с /api/ будут применяться с JWT middleware
 		api.GET("/gdp", handlers.AverageGdpHandler)
-		api.POST("/trade", controllers.SaveTradeData)
 	}
 
 	log.Println("Starting server on port 8080...")
