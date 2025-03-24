@@ -54,7 +54,7 @@ func main() {
 	router.GET("/", handlers.Handler)
 	router.POST("/api/login", handlers.GetAPIKeyHandler)
 	router.GET("/api/calculations", controllers.Calculations)
-	router.POST("/trade", controllers.SaveTradeData)
+	router.POST("/api/trade", controllers.SaveTradeData)
 
 	// Защищённая группа маршрутов
 	api := router.Group("/api")

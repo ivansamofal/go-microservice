@@ -1,24 +1,19 @@
-QUIET := @
-ARGS=$(filter-out $@, $(MAKECMDGOALS))
-
-.DEFAULT_GOAL=help
-.PHONY=help
-app_container=app
-queue_container=app
-app_container=queue
-db_container=postgresql
+.PHONY: db-logs db go build deps
 
 db-logs:
-    docker logs -f go-postgres
+	docker logs -f go-postgres
 
 db:
-    docker exec -it go-postgres bash
+	docker exec -it go-postgres bash
 
 go:
-    docker exec -it go-microservice bash
+	docker exec -it go-microservice bash
 
-build:
-    go build -o main .
+go-build:
+	go build -o main .
 
 deps:
-    go mod tidy
+	go mod tidy
+
+build:
+	docker compose up -d --build
