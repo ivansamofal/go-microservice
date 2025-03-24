@@ -2,16 +2,17 @@ package trade
 
 import (
 	"go_microservice/internal/models"
+	//"go_microservice/internal/logger"
+	//"strconv"
+	"math"
 )
-
-// calculateEMA вычисляет экспоненциальную скользящую среднюю по ряду цен.
-// Если длина ряда меньше периода, возвращается срез с нулями.
-func CalculateEMA(prices []float64, period int) []float64 {
+// fullEMA вычисляет полную серию значений EMA без обрезки.
+func fullEMA(prices []float64, period int) []float64 {
 	ema := make([]float64, len(prices))
 	if len(prices) < period {
+		// Если данных меньше периода, вернуть пустой срез (или можно вернуть ema, заполненный нулями).
 		return ema
 	}
-	// Первое значение EMA равно простому скользящему среднему за период.
 	sum := 0.0
 	for i := 0; i < period; i++ {
 		sum += prices[i]
@@ -20,30 +21,52 @@ func CalculateEMA(prices []float64, period int) []float64 {
 	ema[period-1] = sma
 
 	multiplier := 2.0 / (float64(period) + 1)
-	// Вычисляем EMA для последующих значений.
 	for i := period; i < len(prices); i++ {
 		ema[i] = (prices[i]-ema[i-1])*multiplier + ema[i-1]
 	}
 	return ema
 }
 
-// calculateMACD вычисляет линии MACD, сигнальную линию и гистограмму.
-// Для этого используются два EMA (например, 12 и 26 периодов) и EMA сигнальной линии (обычно 9 периодов).
-func CalculateMACD(prices []float64, shortPeriod int, longPeriod int, signalPeriod int) (macdLine, signalLine, histogram []float64) {
-	emaShort := CalculateEMA(prices, shortPeriod)
-	emaLong := CalculateEMA(prices, longPeriod)
-	macdLine = make([]float64, len(prices))
-	for i := 0; i < len(prices); i++ {
-		macdLine[i] = emaShort[i] - emaLong[i]
+// CalculateEMA возвращает последние 30 элементов рассчитанной EMA (если их достаточно),
+// иначе возвращает всю серию.
+func CalculateEMA(prices []float64, period int) []float64 {
+	ema := fullEMA(prices, period)
+	if len(ema) >= 30 {
+		return ema[len(ema)-30:]
 	}
-	signalLine = CalculateEMA(macdLine, signalPeriod)
-	histogram = make([]float64, len(prices))
+	return ema
+}
+
+// CalculateMACD вычисляет MACD, сигнальную линию и гистограмму.
+// Для расчёта используются полные серии EMA, после чего результаты обрезаются до последних 30 элементов.
+func CalculateMACD(prices []float64, shortPeriod, longPeriod, signalPeriod int) (macdLine, signalLine, histogram []float64) {
+	emaShort := fullEMA(prices, shortPeriod)
+	emaLong := fullEMA(prices, longPeriod)
+
+	macdFull := make([]float64, len(prices))
 	for i := 0; i < len(prices); i++ {
-		histogram[i] = macdLine[i] - signalLine[i]
+		macdFull[i] = emaShort[i] - emaLong[i]
+	}
+
+	signalFull := fullEMA(macdFull, signalPeriod)
+	histogramFull := make([]float64, len(prices))
+	for i := 0; i < len(prices); i++ {
+		histogramFull[i] = macdFull[i] - signalFull[i]
+	}
+
+	if len(macdFull) >= 30 {
+		macdLine = macdFull[len(macdFull)-30:]
+		signalLine = signalFull[len(signalFull)-30:]
+		histogram = histogramFull[len(histogramFull)-30:]
+	} else {
+		macdLine = macdFull
+		signalLine = signalFull
+		histogram = histogramFull
 	}
 	return
 }
 
+// CalculateVWAP рассчитывает VWAP на основе переданных данных.
 func CalculateVWAP(data []models.BinanceTickerData) float64 {
 	totalPV, totalVolume := 0.0, 0.0
 	for _, d := range data {
@@ -56,14 +79,14 @@ func CalculateVWAP(data []models.BinanceTickerData) float64 {
 	return totalPV / totalVolume
 }
 
-// calculateRSI рассчитывает индекс относительной силы для ряда цен с заданным периодом.
+// CalculateRSI рассчитывает RSI для ряда цен с заданным периодом.
+// После расчёта возвращается срез из последних 30 значений (если данных достаточно).
 func CalculateRSI(prices []float64, period int) []float64 {
 	rsi := make([]float64, len(prices))
 	if len(prices) < period+1 {
 		return rsi
 	}
 	gains, losses := 0.0, 0.0
-	// Начальные средние приросты и потери.
 	for i := 1; i <= period; i++ {
 		change := prices[i] - prices[i-1]
 		if change > 0 {
@@ -81,7 +104,6 @@ func CalculateRSI(prices []float64, period int) []float64 {
 		rs := avgGain / avgLoss
 		rsi[period] = 100 - (100 / (1 + rs))
 	}
-	// Вычисление RSI для последующих периодов.
 	for i := period + 1; i < len(prices); i++ {
 		change := prices[i] - prices[i-1]
 		gain, loss := 0.0, 0.0
@@ -94,11 +116,15 @@ func CalculateRSI(prices []float64, period int) []float64 {
 		avgLoss = ((avgLoss * float64(period-1)) + loss) / float64(period)
 		var rs float64
 		if avgLoss == 0 {
-			rs = 0
+			rs = math.Inf(1)
 		} else {
 			rs = avgGain / avgLoss
 		}
 		rsi[i] = 100 - (100 / (1 + rs))
+	}
+
+	if len(rsi) >= 30 {
+		return rsi[len(rsi)-30:]
 	}
 	return rsi
 }

@@ -1,19 +1,23 @@
 package main
 
 import (
+	"log"
+	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"go_microservice/internal/cache"
+	"go_microservice/internal/controllers"
 	"go_microservice/internal/db"
 	"go_microservice/internal/handlers"
-	"go_microservice/internal/controllers"
 	"go_microservice/internal/logger"
 	"go_microservice/internal/middleware"
-	"go_microservice/internal/cache"
-	"github.com/joho/godotenv"
-	"log"
 
-	"github.com/gin-gonic/gin"
-	_ "go_microservice/docs" // пакет сгенерированных документов (смотрите шаг 4)
+	_ "go_microservice/docs" // пакет сгенерированных документов
 )
 
 // @title Go Microservice API
@@ -32,11 +36,23 @@ func main() {
 
 	router := gin.Default()
 
+	// Применяем CORS middleware ко всем маршрутам
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	// Документация Swagger
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Публичные маршруты
 	router.GET("/", handlers.Handler)
 	router.POST("/api/login", handlers.GetAPIKeyHandler)
+	router.GET("/api/calculations", controllers.Calculations)
 
 	// Защищённая группа маршрутов
 	api := router.Group("/api")
@@ -47,10 +63,9 @@ func main() {
 		api.GET("/geo", handlers.GeoHandler)
 		api.POST("/save", handlers.FetchAndSaveData)
 
-		router.GET("/api/gdp", handlers.AverageGdpHandler)
-
-		router.POST("/api/trade", controllers.SaveTradeData)
-		router.GET("/api/calculations", controllers.Calculations)
+		// Все маршруты начинающиеся с /api/ будут применяться с JWT middleware
+		api.GET("/gdp", handlers.AverageGdpHandler)
+		api.POST("/trade", controllers.SaveTradeData)
 	}
 
 	log.Println("Starting server on port 8080...")

@@ -35,5 +35,18 @@ services:
     ports:
       - "6379:6379"
 
+  node:
+    build: ./node-app
+    container_name: node-frontend
+    depends_on:
+      - app
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - ./node-app:/usr/src/app
+      - node_modules_volume:/usr/src/app/node_modules
+
 volumes:
   postgres_data:
+  node_modules_volume:

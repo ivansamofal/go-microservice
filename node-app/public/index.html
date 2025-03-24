@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Графики индикаторов</title>
+    <!-- Подключаем Chart.js через CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>Графики индикаторов</h1>
+<canvas id="emaChart" width="600" height="300"></canvas>
+<canvas id="macdChart" width="600" height="300"></canvas>
+<canvas id="histogram" width="600" height="300"></canvas>
+<canvas id="rsi" width="600" height="300"></canvas>
+<canvas id="signalLine" width="600" height="300"></canvas>
+
+<script>
+    // Запрашиваем данные с нашего API
+    fetch('http://localhost:8080/api/calculations')
+        .then(response => response.json())
+        .then(data => {
+            // Создаем график EMA
+            const emaCtx = document.getElementById('emaChart').getContext('2d');
+            new Chart(emaCtx, {
+                type: 'line',
+                data: {
+                    labels: data.ema.map((_, i) => i + 1),
+                    datasets: [{
+                        label: 'EMA',
+                        data: data.ema,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Период'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Значение EMA'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Создаем график MACD
+            const macdCtx = document.getElementById('macdChart').getContext('2d');
+            new Chart(macdCtx, {
+                type: 'line',
+                data: {
+                    labels: data.macdLine.map((_, i) => i + 1),
+                    datasets: [{
+                        label: 'MACD',
+                        data: data.macdLine,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Период'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Значение MACD'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const histogram = document.getElementById('histogram').getContext('2d');
+            new Chart(histogram, {
+                type: 'line',
+                data: {
+                    labels: data.histogram.map((_, i) => i + 1),
+                    datasets: [{
+                        label: 'Histogram',
+                        data: data.histogram,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Период'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Значение Histogram'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const rsi = document.getElementById('rsi').getContext('2d');
+            new Chart(rsi, {
+                type: 'line',
+                data: {
+                    labels: data.rsi.map((_, i) => i + 1),
+                    datasets: [{
+                        label: 'RSI',
+                        data: data.rsi,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Период'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Значение RSI'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const signalLine = document.getElementById('signalLine').getContext('2d');
+            new Chart(signalLine, {
+                type: 'line',
+                data: {
+                    labels: data.rsi.map((_, i) => i + 1),
+                    datasets: [{
+                        label: 'Signal Line',
+                        data: data.signalLine,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Период'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Значение Signal Line'
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Ошибка загрузки данных:', error));
+</script>
+</body>
+</html>
