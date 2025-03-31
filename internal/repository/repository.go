@@ -49,6 +49,12 @@ func CreateTradeRow(ticker *migrations.BinanceTicker) error {
 	return db.DB.Create(ticker).Error
 }
 
-func GetTradeRows(tickers *[]migrations.BinanceTicker) error {
-	return db.DB.Order("created_at asc").Limit(1000).Find(tickers).Error
+func GetTradeRows(tickers *[]migrations.BinanceTicker, limit int) error {
+	subQuery := db.DB.Model(&migrations.BinanceTicker{}).
+		Select("*").
+		Order("created_at desc").
+		Limit(limit)
+	return db.DB.Table("(?) as sub", subQuery).
+		Order("created_at asc").
+		Find(tickers).Error
 }

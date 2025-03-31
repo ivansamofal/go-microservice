@@ -71,12 +71,6 @@ func SaveTradeData(c *gin.Context) {
 		return
 	}
 
-	//// Сохраняем запись в БД.
-	//if err := db.Create(&ticker).Error; err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	//	return
-	//}
-
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Данные успешно сохранены",
 		"data":    ticker,

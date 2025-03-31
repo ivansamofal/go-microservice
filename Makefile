@@ -16,7 +16,7 @@ deps:
 	go mod tidy
 
 build:
-	docker compose up -d --build && docker exec node-frontend npm run build
+	docker compose up -d --build && docker exec node-frontend npm i && docker exec node-frontend npm run build
 
 npm:
 	docker exec -it node-frontend bash

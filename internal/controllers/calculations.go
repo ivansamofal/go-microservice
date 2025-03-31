@@ -14,8 +14,30 @@ import (
 )
 
 func Calculations(c *gin.Context) {
+	x, err := strconv.Atoi(c.DefaultQuery("x", "1"))
+	if err != nil || x <= 0 {
+		x = 1
+	}
+	// Получаем период для EMA из query-параметра, по умолчанию 10
+	period, err := strconv.Atoi(c.DefaultQuery("p", "10"))
+	if err != nil || period <= 0 {
+		period = 10
+	}
+	shortPeriod, err := strconv.Atoi(c.DefaultQuery("sp", "12"))
+	if err != nil || shortPeriod <= 0 {
+		shortPeriod = 12
+	}
+	longPeriod, err := strconv.Atoi(c.DefaultQuery("lp", "26"))
+	if err != nil || longPeriod <= 0 {
+		longPeriod = 26
+	}
+	signalPeriod, err := strconv.Atoi(c.DefaultQuery("sinp", "9"))
+	if err != nil || signalPeriod <= 0 {
+		signalPeriod = 9
+	}
+
 	var tickers []migrations.BinanceTicker
-	err := repository.GetTradeRows(&tickers)
+	err = repository.GetTradeRows(&tickers, longPeriod * x)
 	if err != nil {
 		logger.Log.WithError(err).Error("Error during retrieving trade rows")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -48,25 +70,6 @@ func Calculations(c *gin.Context) {
 			Volume:    vol,
 		}
 		tickerData = append(tickerData, tData)
-	}
-
-	// Получаем период для EMA из query-параметра, по умолчанию 10
-	periodStr := c.DefaultQuery("period", "10")
-	period, err := strconv.Atoi(periodStr)
-	if err != nil || period <= 0 {
-		period = 10
-	}
-	shortPeriod, err := strconv.Atoi(c.DefaultQuery("shortPeriod", "12"))
-	if err != nil || shortPeriod <= 0 {
-		shortPeriod = 12
-	}
-	longPeriod, err := strconv.Atoi(c.DefaultQuery("longPeriod", "26"))
-	if err != nil || longPeriod <= 0 {
-		longPeriod = 26
-	}
-	signalPeriod, err := strconv.Atoi(c.DefaultQuery("signalPeriod", "9"))
-	if err != nil || signalPeriod <= 0 {
-		signalPeriod = 9
 	}
 
 	// Вычисляем EMA
